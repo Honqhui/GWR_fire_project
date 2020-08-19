@@ -1,0 +1,27 @@
+### Codes for examine the Pearson Correlation and VIF between explanatory variables
+
+### Explanatory variables with a Pearson Correlation value between -0.7 and 0.7 and a VIF value less than 5.00 are retained
+
+library(corpcor)
+library(ppcor)
+library(corrplot)
+
+
+### import .csv file into R ###
+v.data15 <- read.csv(file="[File path]",
+				header=TRUE,
+				sep=",")
+attach(v.data15)
+
+### VIF (Variance Inflation Factor) test ###
+X <- v.data15[c(5:30)]  # "5:30" refers to the columns position of the explanatory variables. My first explanatory variable starts at the fifth column and ends at the thirtieth
+imcdiag(X, v.data15$FC) # remove the explanatory variable with the highest VIF value and repeat this command again until all VIF values are less than 5.00
+
+### Please see the step-by-step process output at 
+
+
+### Pearson Correlation ###
+cor1 <- cor(X)  # "X" here includes only the explanatory variables with VIF values less than 5.00
+corrplot.mixed(cor1, upper = "pie", lower.col = "black", number.cex = 0.5, tl.cex = 0.3)  # For explanatory variables with Correlation values greater/less than 0.7/-0.7, remove the variable with a higher VIF value
+
+
