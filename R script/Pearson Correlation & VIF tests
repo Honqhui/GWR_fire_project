@@ -17,8 +17,6 @@ attach(v.data15)
 X <- v.data15[c(5:30)]  # "5:30" refers to the columns position of the explanatory variables. My first explanatory variable starts at the fifth column and ends at the thirtieth
 imcdiag(X, v.data15$FC) # remove the explanatory variable with the highest VIF value and repeat this command again until all VIF values are less than 5.00
 
-### Please see the step-by-step process output at 
-
 
 ### Pearson Correlation ###
 cor1 <- cor(X)  # "X" here includes only the explanatory variables with VIF values less than 5.00
