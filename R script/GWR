@@ -1,0 +1,59 @@
+### Using GWR function from the package GWmodel
+### Descriptions for GWmodel : https://cran.r-project.org/web/packages/GWmodel/GWmodel.pdf
+
+library(GWmodel)
+require(sf)
+library(sp)
+require(rgdal)
+library(dplyr)
+
+### import .csv file ###
+v.data15 <- read.csv(file="[File path]/Datasets/3km grid with all variables.csv",
+				header=TRUE,
+				sep=",")  # This .csv file only includes explanatory variables that pass Pearson Correlation and VIF tests
+
+
+### Preparation for GWR calculation ###
+DM <- gw.dist(
+              dp.locat = cbind(v.data15$xcoord, v.data15$ycoord), 
+	            rp.locat = cbind(v.data15$xcoord, v.data15$ycoord)
+              )
+coords <- cbind(v.data15$xcoord,v.data15$ycoord)
+sp <- SpatialPoints(coords)
+spdf = SpatialPointsDataFrame(sp, v.data15)
+
+
+### Bandwidth calculation ###
+band <- bw.ggwr(FC ~ RAIN + TEMP +  # Climatic variables
+                  MAJOR_D + MINOR_D + RIVER_P + MAJOR_P + MINOR_P + SMALL_P +  # Proximity and density of certain features
+	                LC_FOR + LC_SH +  # Land cover types
+                  POPDEN + GDP + MAD +  # Socioeconomic factors
+                  CATTLE + GOAT,  # Economic activities/ animal husbandry 
+                  data = spdf, 
+                  longlat = TRUE,  # Spherical projection, this layer is using WGS84 and is not being projected to any Coordinate Reference System
+                  family = "poisson",  # Fire count per grid cell is used as dependent variable, and hence Poisson regression is adapted
+                  approach = "CV",  
+	                kernel = "gaussian", 
+                  adaptive = TRUE,  # True = the number of neighbours within the kernel; False: the radius of the kernel (in length unit)
+                  dMat = DM)
+
+### GWR ###
+model <- ggwr.basic(FC ~ RAIN + TEMP + 
+                  MAJOR_D + MINOR_D + RIVER_P + MAJOR_P + MINOR_P + SMALL_P +  
+	                LC_FOR + LC_SH + 
+                  POPDEN + GDP + MAD + 
+                  CATTLE + GOAT, 
+                  data = spdf, 
+                  bw = [The final value obtained from bandwidth calculation], 
+                  family = "poisson", 
+                  approach = "CV",  
+	                kernel = "gaussian", 
+                  adaptive = TRUE, 
+                  dMat = DM)
+result.gwr <- as.data.frame(model$SDF)
+write.table(result.gwr, file = "[File path]/All coeff.csv", 
+	append = FALSE, quote = FALSE, sep = ",",
+            eol = "\n", na = "NA", dec = ".", row.names = TRUE,
+            col.names = TRUE, qmethod = "double",
+            fileEncoding = "")
+
